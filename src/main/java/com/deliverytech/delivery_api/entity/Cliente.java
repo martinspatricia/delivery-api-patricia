@@ -1,24 +1,44 @@
 package com.deliverytech.delivery_api.entity;
 
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.Data; // Adiciona Getters, Setters, ToString, EqualsAndHashCode
-import lombok.NoArgsConstructor; // Adiciona Construtor sem argumentos
-import lombok.AllArgsConstructor; // Adiciona Construtor com todos os argumentos
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Data
 @Entity
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "clientes")
 public class Cliente {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String nome;
-    private String email; 
-    private boolean ativo; 
-    
-    // Todos os Getters, Setters, Construtores e métodos de utilidade são gerados pelo Lombok.
+
+    private String email;
+
+    private String telefone;
+
+    private String endereco;
+
+    @Column(name = "data_cadastro")
+    private LocalDateTime dataCadastro;
+
+    @Column(nullable = true)
+    private Boolean ativo;
+
+    public void inativar() {
+        this.ativo = false;
+    }
+
 }

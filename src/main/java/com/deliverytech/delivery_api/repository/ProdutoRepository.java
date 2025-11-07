@@ -10,17 +10,18 @@ import java.util.List;
 @Repository
 public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
-    // 1. Busca por ID do Restaurante
+    // Buscar produtos por ID do restaurante
     List<Produto> findByRestauranteId(Long restauranteId);
-    
-    // 2. Busca combinada (usada no ProdutoService)
-    List<Produto> findByRestauranteIdAndDisponivelTrue(Long restauranteId); 
 
-    // 3. Busca por status simples
+    // Buscar produtos disponíveis de um restaurante específico
+    List<Produto> findByRestauranteIdAndDisponivelTrue(Long restauranteId);
+
+    // Buscar todos os produtos disponíveis
     List<Produto> findByDisponivelTrue();
-    
+
+    // Buscar produtos por categoria
     List<Produto> findByCategoria(String categoria);
-    
-    // 4. Busca por valor (BigDecimal)
+
+    // Buscar produtos com preço menor ou igual ao valor informado
     List<Produto> findByPrecoLessThanEqual(BigDecimal preco);
 }

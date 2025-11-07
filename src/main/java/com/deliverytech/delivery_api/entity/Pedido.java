@@ -1,28 +1,44 @@
 package com.deliverytech.delivery_api.entity;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
-import java.math.BigDecimal;
-import java.util.List;
 
-@Data
 @Entity
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "pedidos")
 public class Pedido {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String status; 
-    private LocalDateTime dataPedido; // Nome do campo mais adequado
-    private BigDecimal valorTotal; // Alterado para BigDecimal
+    
+    @Column(name = "numero_pedido")
+    private String numeroPedido;
 
-    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
-    private List<ItemPedido> itens; 
+    @Column(name = "data_pedido")
+    private LocalDateTime dataPedido;
+
+    private String status;
+
+    @Column(name = "valor_total")
+    private BigDecimal valorTotal;
+
+    private String observacoes;
+
+    @Column(name = "cliente_id")
+    private Long clienteId;
 
     @ManyToOne
-    private Cliente cliente; 
+    @JoinColumn(name = "restaurante_id")
+    private Restaurante restaurante;
+
+    private String itens;
+
 }

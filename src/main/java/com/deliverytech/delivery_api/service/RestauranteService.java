@@ -1,43 +1,156 @@
 package com.deliverytech.delivery_api.service;
 
-import com.deliverytech.delivery_api.entity.Restaurante;
-import com.deliverytech.delivery_api.repository.RestauranteRepository;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.Sort; // NOVO IMPORT
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import com.deliverytech.delivery_api.entity.Restaurante;
+import com.deliverytech.delivery_api.repository.RestauranteRepository;
 
+import com.deliverytech.delivery_api.entity.RestauranteDTO;
 
 @Service
 public class RestauranteService {
 
     @Autowired
+    
     private RestauranteRepository restauranteRepository;
+    /**
+     * Cadastrar novo restaurante
+     */
+    public Restaurante cadastrar(Restaurante restaurante) {
+        // Validar nome único
+        if (restauranteRepository.findByNome(restaurante.getNome()).isPresent()) {
+            throw new IllegalArgumentException("Restaurante já cadastrado: " + restaurante.getNome());
+        }
 
-    // Métodos cadastrarRestaurante, atualizarRestaurante, alterarStatus, buscarPorId...
-    // (Permanecem inalterados e já estão corretos)
-    // ...
+        validarDadosRestaurante(restaurante);
+        restaurante.setAtivo(true);
 
-    // Busca ativos ordenados por avaliação (AGORA COM OBJETO SORT)
-    public List<Restaurante> buscarMelhoresRestaurantes() {
-        // Usa o método findByAtivoTrue e passa o objeto Sort, 
-        // ordenando pelo campo "avaliacao" de forma DESC
-        return restauranteRepository.findByAtivoTrue(Sort.by(Sort.Direction.DESC, "avaliacao"));
+        return restauranteRepository.save(restaurante);
     }
 
-    public Restaurante buscarPorId(Long restauranteId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'buscarPorId'");
+    /**
+     * Buscar por ID
+     */
+    @Transactional(readOnly = true)
+    public Optional<Restaurante> buscarPorId(Long id) {
+        return restauranteRepository.findById(id);
     }
 
-    public Restaurante alterarStatus(Long id, boolean ativo) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'alterarStatus'");
+    @Transactional(readOnly = true)
+    public Optional<RestauranteDTO> findById(Long id) {
+        Optional<Restaurante> byId = restauranteRepository.findById(id);
+        if (byId.isEmpty()) {
+            return Optional.empty();
+        }
+        return byId.map(restaurante -> new RestauranteDTO(
+                restaurante.getId(),
+                restaurante.getNome(),
+                restaurante.getCategoria(),
+                restaurante.getEndereco(),
+                restaurante.getTelefone(),
+                restaurante.getTaxaEntrega(),
+                restaurante.getAvaliacao(),
+                restaurante.getAtivo()));
+    }
+    /**
+     * Listar restaurantes ativos
+     */
+    @Transactional(readOnly = true)
+    public List<RestauranteDTO> listarAtivos() {
+        List<Restaurante> byAtivoTrue = restauranteRepository.findByAtivoTrue();
+        if (byAtivoTrue.isEmpty()) {
+            throw new IllegalArgumentException("Nenhum restaurante ativo encontrado");
+        }
+        return byAtivoTrue.stream()
+            .map(restaurante -> new RestauranteDTO(
+                restaurante.getId(),
+                restaurante.getNome(),
+                restaurante.getCategoria(),
+                restaurante.getEndereco(),
+                restaurante.getTelefone(),
+                restaurante.getTaxaEntrega(),
+                restaurante.getAvaliacao(),
+                restaurante.getAtivo()))
+            .toList();
     }
 
-    public Restaurante cadastrarRestaurante(Restaurante restaurante) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'cadastrarRestaurante'");
+    /**
+     * Buscar por categoria
+     */
+    @Transactional(readOnly = true)
+    public List<RestauranteDTO> buscarPorCategoria(String categoria) {
+        List<Restaurante> byCategoria = restauranteRepository.findByCategoria(categoria);
+        if (byCategoria.isEmpty()) {
+            throw new IllegalArgumentException("Nenhum restaurante encontrado para a categoria: " + categoria);
+        }
+
+        return byCategoria.stream()
+            .map(restaurante -> new RestauranteDTO(
+                restaurante.getId(),
+                restaurante.getNome(),
+                restaurante.getCategoria(),
+                restaurante.getEndereco(),
+                restaurante.getTelefone(),
+                restaurante.getTaxaEntrega(),
+                restaurante.getAvaliacao(),
+                restaurante.getAtivo()))
+            .toList();
+    }
+
+    /**
+     * Atualizar restaurante
+     */
+    public Restaurante atualizar(Long id, Restaurante restauranteAtualizado) {
+        Restaurante restaurante = buscarPorId(id)
+            .orElseThrow(() -> new IllegalArgumentException("Restaurante não encontrado: " + id));
+
+        // Verificar nome único (se mudou)
+        if (!restaurante.getNome().equals(restauranteAtualizado.getNome()) &&
+            restauranteRepository.findByNome(restauranteAtualizado.getNome()).isPresent()) {
+            throw new IllegalArgumentException("Nome já cadastrado: " + restauranteAtualizado.getNome());
+        }
+
+        restaurante.setNome(restauranteAtualizado.getNome());
+        restaurante.setCategoria(restauranteAtualizado.getCategoria());
+        restaurante.setEndereco(restauranteAtualizado.getEndereco());
+        restaurante.setTelefone(restauranteAtualizado.getTelefone());
+        restaurante.setTaxaEntrega(restauranteAtualizado.getTaxaEntrega());
+
+        return restauranteRepository.save(restaurante);
+    }
+
+    /**
+     * Inativar restaurante
+     */
+    public void inativar(Long id) {
+        Restaurante restaurante = buscarPorId(id)
+            .orElseThrow(() -> new IllegalArgumentException("Restaurante não encontrado: " + id));
+
+        restaurante.setAtivo(false);
+        restauranteRepository.save(restaurante);
+    }
+
+    private void validarDadosRestaurante(Restaurante restaurante) {
+        if (restaurante.getNome() == null || restaurante.getNome().trim().isEmpty()) {
+            throw new IllegalArgumentException("Nome é obrigatório");
+        }
+
+        if (restaurante.getTaxaEntrega() != null &&
+            restaurante.getTaxaEntrega().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Taxa de entrega não pode ser negativa");
+        }
+    }
+
+    public void deletar(Long id) {
+        Restaurante restaurante = buscarPorId(id)
+            .orElseThrow(() -> new IllegalArgumentException("Restaurante não encontrado: " + id));
+        restauranteRepository.delete(restaurante);
     }
 }

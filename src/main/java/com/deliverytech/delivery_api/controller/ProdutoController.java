@@ -1,56 +1,108 @@
 package com.deliverytech.delivery_api.controller;
-
-import com.deliverytech.delivery_api.entity.Produto;
-import com.deliverytech.delivery_api.service.ProdutoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.NoSuchElementException;
+import com.deliverytech.delivery_api.entity.Produto;
+import com.deliverytech.delivery_api.service.ProdutoService;
+
 
 @RestController
-@RequestMapping("/restaurantes/{restauranteId}/produtos")
+@RequestMapping("/produtos")
+@CrossOrigin(origins = "*")
 public class ProdutoController {
-
     @Autowired
     private ProdutoService produtoService;
 
-    // POST /restaurantes/{restauranteId}/produtos
     @PostMapping
-    public ResponseEntity<?> cadastrarProduto(@PathVariable Long restauranteId, @RequestBody Produto produto) {
+    public ResponseEntity<?> cadastrar(@Validated @RequestBody Produto produto) {
         try {
-            Produto novoProduto = produtoService.cadastrarProduto(restauranteId, produto);
-            return new ResponseEntity<>(novoProduto, HttpStatus.CREATED);
-        } catch (NoSuchElementException e) {
-            return new ResponseEntity<>("Restaurante não encontrado.", HttpStatus.NOT_FOUND);
+            Produto produtoSalvo = produtoService.cadastrar(produto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(produtoSalvo);
         } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Erro interno do servidor");
         }
     }
 
-    // GET /restaurantes/{restauranteId}/produtos (Busca produtos disponíveis)
+    // Listar todos os produtos
     @GetMapping
-    public ResponseEntity<List<Produto>> buscarProdutosDisponiveis(@PathVariable Long restauranteId) {
+    public ResponseEntity<?> listarTodos() {
         try {
-            List<Produto> produtos = produtoService.buscarProdutosDisponiveis(restauranteId);
-            return ResponseEntity.ok(produtos);
-        } catch (NoSuchElementException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.ok(produtoService.listarTodos());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Erro interno do servidor");
+        }
+    }
+    // Buscar produto por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
+        try {
+            Produto produto = produtoService.buscarPorId(id);
+            if (produto != null) {
+                return ResponseEntity.ok(produto);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Produto não encontrado");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Erro interno do servidor");
+        }
+    }
+    // Atualizar produto
+    @PutMapping("/{id}")
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @Validated @RequestBody Produto produto) {
+        try {
+            Produto atualizado = produtoService.atualizar(id, produto);
+            return ResponseEntity.ok(atualizado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Erro interno do servidor");
+        }
+    }
+    // Excluir produto
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> excluir(@PathVariable Long id) {
+        try {
+            produtoService.excluir(id);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Erro interno do servidor");
+        }
+    }
+    //inativar produto
+    @PutMapping("/{id}/inativar")
+    public ResponseEntity<?> inativar(@PathVariable Long id) {
+        try {
+            Produto produtoInativado = produtoService.inativar(id);
+            return ResponseEntity.ok(produtoInativado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Erro interno do servidor");
         }
     }
 
-    // PATCH /restaurantes/{restauranteId}/produtos/{produtoId}/disponibilidade
-    @PatchMapping("/{produtoId}/disponibilidade")
-    public ResponseEntity<?> alterarDisponibilidade(
-            @PathVariable Long produtoId,
-            @RequestParam boolean disponivel) {
+    // buscar produto por restaurante ID
+    @GetMapping("/restaurante/{restauranteId}")
+    public ResponseEntity<?> buscarPorRestaurante(@PathVariable Long restauranteId) {
         try {
-            Produto produtoAtualizado = produtoService.alterarDisponibilidade(produtoId, disponivel);
-            return ResponseEntity.ok(produtoAtualizado);
-        } catch (NoSuchElementException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+            return ResponseEntity.ok(produtoService.buscarPorRestaurante(restauranteId));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Erro interno do servidor");
         }
     }
+
 }

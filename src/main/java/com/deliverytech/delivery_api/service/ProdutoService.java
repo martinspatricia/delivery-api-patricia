@@ -1,58 +1,116 @@
 package com.deliverytech.delivery_api.service;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.deliverytech.delivery_api.entity.Produto;
-import com.deliverytech.delivery_api.entity.Restaurante;
-import com.deliverytech.delivery_api.repository.ProdutoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal; // Import necessário
-import java.util.List;
-import java.util.NoSuchElementException;
+import com.deliverytech.delivery_api.entity.Produto;
+import com.deliverytech.delivery_api.entity.ProdutoDTO;
+import com.deliverytech.delivery_api.repository.ProdutoRepository;
+import com.deliverytech.delivery_api.repository.RestauranteRepository;
 
 @Service
 public class ProdutoService {
-
-    @Autowired
-    private ProdutoRepository produtoRepository;
     
     @Autowired
-    private RestauranteService restauranteService; 
+    private ProdutoRepository produtoRepository;
 
-    // Cadastro por restaurante, validação de preço
-    public Produto cadastrarProduto(Long restauranteId, Produto novoProduto) {
-        Restaurante restaurante = restauranteService.buscarPorId(restauranteId);
-        
-        // Validação de preço usando compareTo()
-        if (novoProduto.getPreco() == null || novoProduto.getPreco().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("O preço do produto deve ser maior que zero.");
-        }
+    @SuppressWarnings("unused")
+    @Autowired
+    private RestauranteRepository restauranteRepository;
 
-        novoProduto.setRestaurante(restaurante);
-        novoProduto.setDisponivel(true); 
-        return produtoRepository.save(novoProduto);
-    }
+    /**
+     * Cadastrar novo produto
+     */
+    public Produto cadastrar(Produto produto) {
 
-    // Disponibilidade (alternar status)
-    public Produto alterarDisponibilidade(Long produtoId, boolean disponivel) {
-        Produto produto = buscarPorId(produtoId);
-        produto.setDisponivel(disponivel);
+        produto.setRestauranteId(produto.getRestauranteId());
+        produto.setDisponivel(produto.getDisponivel());
+
         return produtoRepository.save(produto);
     }
+    /**
+     * Listar todos os produtos
+     */
+    public List<ProdutoDTO> listarTodos() {
+        List<Produto> produtos = produtoRepository.findAll();
+        List<ProdutoDTO> produtosDTO = new ArrayList<>();
 
-    // Busca por ID
-    @SuppressWarnings("null")
+        for (Produto produto : produtos) {
+            ProdutoDTO dto = new ProdutoDTO(produto.getId(), produto.getNome(), produto.getDescricao(),
+                    produto.getPreco(), produto.getCategoria(), produto.getDisponivel());
+            produtosDTO.add(dto);
+        }
+
+        return produtosDTO;
+    }
+    /**
+     * Buscar produto por ID
+     */
     public Produto buscarPorId(Long id) {
         return produtoRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Produto não encontrado."));
+                .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado: " + id));
+    }
+    /**
+     * Atualizar produto
+     */
+    @Transactional
+    public Produto atualizar(Long id, Produto produtoAtualizado) {
+        Produto produtoExistente = produtoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado: " + id));
+
+        validarDadosProduto(produtoAtualizado);
+
+        produtoExistente.setNome(produtoAtualizado.getNome());
+        produtoExistente.setDescricao(produtoAtualizado.getDescricao());
+        produtoExistente.setPreco(produtoAtualizado.getPreco());
+        produtoExistente.setCategoria(produtoAtualizado.getCategoria());
+        produtoExistente.setDisponivel(produtoAtualizado.getDisponivel());
+
+        return produtoRepository.save(produtoExistente);
+    }
+    /**
+     * Excluir produto
+     */
+    @Transactional
+    public void excluir(Long id) {
+        Produto produto = produtoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado: " + id));
+
+        produtoRepository.delete(produto);
     }
 
-    // Busca por restaurante e disponibilidade, usando o método combinado
-    public List<Produto> buscarProdutosDisponiveis(Long restauranteId) {
-        // Validação de existência do restaurante (garante 404 se o restauranteId for inválido)
-        restauranteService.buscarPorId(restauranteId); 
-        
-        // Usa o novo Query Method que busca por ID E status (findByRestauranteIdAndDisponivelTrue)
-        return produtoRepository.findByRestauranteIdAndDisponivelTrue(restauranteId);
+    private void validarDadosProduto(Produto produto) {
+        if (produto.getNome() == null || produto.getNome().isEmpty()) {
+            throw new IllegalArgumentException("Nome do produto é obrigatório");
+        }
+        if (produto.getDescricao() == null || produto.getDescricao().isEmpty()) {
+            throw new IllegalArgumentException("Descrição do produto é obrigatória");
+        }
+        if (produto.getPreco() == null || produto.getPreco().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Preço do produto deve ser maior que zero");
+        }
+        if (produto.getCategoria() == null || produto.getCategoria().isEmpty()) {
+            throw new IllegalArgumentException("Categoria do produto é obrigatória");
+        }
+    }
+    // buscar produtos por restaurante
+    public List<Produto> buscarPorRestaurante(Long restauranteId) {
+        return produtoRepository.findByRestauranteId(restauranteId);
+    }
+
+    public Produto inativar(Long id) {
+        Produto produto = produtoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado: " + id));
+
+        if (!produto.getDisponivel()) {
+            throw new IllegalArgumentException("Produto já está inativo: " + id);
+        }
+
+        produto.setDisponivel(false);
+        return produtoRepository.save(produto);
     }
 }

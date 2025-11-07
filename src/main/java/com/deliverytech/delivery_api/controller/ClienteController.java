@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/clientes")
@@ -37,9 +38,9 @@ public class ClienteController {
 
     // GET /clientes/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<Cliente> buscarClientePorId(@PathVariable Long id) {
+    public ResponseEntity<Optional<Cliente>> buscarClientePorId(@PathVariable Long id) {
         try {
-            Cliente cliente = clienteService.buscarPorId(id);
+            Optional<Cliente> cliente = clienteService.buscarPorId(id);
             return ResponseEntity.ok(cliente);
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

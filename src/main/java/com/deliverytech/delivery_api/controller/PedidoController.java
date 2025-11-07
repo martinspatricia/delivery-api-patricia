@@ -1,62 +1,58 @@
 package com.deliverytech.delivery_api.controller;
+import java.util.List;
 
-import com.deliverytech.delivery_api.entity.Pedido;
-import com.deliverytech.delivery_api.service.PedidoService;
+import com.deliverytech.delivery_api.entity.PedidoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.NoSuchElementException;
+import com.deliverytech.delivery_api.entity.Pedido;
+import com.deliverytech.delivery_api.enums.StatusPedido;
+import com.deliverytech.delivery_api.service.PedidoService;
 
 @RestController
 @RequestMapping("/pedidos")
+@CrossOrigin(origins = "*")
 public class PedidoController {
-
     @Autowired
     private PedidoService pedidoService;
 
-    // POST /pedidos?clienteId=1
+    /**
+     * Criar novo pedido
+     */
     @PostMapping
-    public ResponseEntity<?> criarPedido(@RequestParam Long clienteId, @RequestBody Pedido pedido) {
+    public ResponseEntity<?> criarPedido(@RequestBody PedidoDTO dto) {
         try {
-            Pedido novoPedido = pedidoService.criarPedido(clienteId, pedido);
-            return new ResponseEntity<>(novoPedido, HttpStatus.CREATED);
-        } catch (NoSuchElementException e) {
-            return new ResponseEntity<>("Cliente não encontrado.", HttpStatus.NOT_FOUND);
-        } catch (IllegalStateException | IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            Pedido pedido = pedidoService.criarPedido(dto);
+            return ResponseEntity.ok(pedido);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno do servidor");
         }
+    }
+    /**
+     * Listar pedidos por cliente
+     */
+    @GetMapping("/cliente/{clienteId}")
+    public ResponseEntity<List<Pedido>> listarPorCliente(@PathVariable Long clienteId) {
+        List<Pedido> pedidos = pedidoService.listarPorCliente(clienteId);
+        return ResponseEntity.ok(pedidos);
+    }
+    /**
+     * Atualizar status do pedido
+     */
+    @PutMapping("/{pedidoId}/{status}")
+    public ResponseEntity<?> atualizarStatus(@PathVariable Long pedidoId,
+                                            @PathVariable StatusPedido status) {
+        try {
+            Pedido pedido = pedidoService.atualizarStatus(pedidoId, status);
+            return ResponseEntity.ok(pedido);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Erro interno do servidor");
+        }
+    }
     }
 
-    // PATCH /pedidos/{id}/status?novoStatus=EM_PREPARACAO
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<?> mudarStatusPedido(@PathVariable Long id, @RequestParam String novoStatus) {
-        try {
-            Pedido pedidoAtualizado = pedidoService.mudarStatus(id, novoStatus);
-            return ResponseEntity.ok(pedidoAtualizado);
-        } catch (NoSuchElementException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        } catch (IllegalStateException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    // GET /pedidos/relatorio?clienteId=1&status=FINALIZADO&dataInicio=...&dataFim=...
-    @GetMapping("/relatorio")
-    public ResponseEntity<?> gerarRelatorioPedidos(
-            @RequestParam Long clienteId,
-            @RequestParam String status,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataInicio,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataFim) {
-        try {
-            List<Pedido> relatorio = pedidoService.buscarRelatorioPedidos(clienteId, status, dataInicio, dataFim);
-            return ResponseEntity.ok(relatorio);
-        } catch (NoSuchElementException e) {
-            return new ResponseEntity<>("Cliente não encontrado.", HttpStatus.NOT_FOUND);
-        }
-    }
-}
