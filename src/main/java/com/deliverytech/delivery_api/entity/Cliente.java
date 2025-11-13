@@ -40,5 +40,6 @@ public class Cliente {
     public void inativar() {
         this.ativo = false;
     }
+    
 
 }
