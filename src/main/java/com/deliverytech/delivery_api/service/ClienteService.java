@@ -128,6 +128,16 @@ public class ClienteService {
         throw new UnsupportedOperationException("Unimplemented method 'buscarClientesAtivos'");
     }
 
+    public List<ClienteResponseDTO> listarClientesAtivos() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'listarClientesAtivos'");
+    }
+
+    public void ativarDesativarCliente(Long id) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'ativarDesativarCliente'");
+    }
+
 /**
      * Validações de negócio
      */

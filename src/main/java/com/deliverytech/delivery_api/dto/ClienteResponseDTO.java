@@ -1,5 +1,7 @@
 package com.deliverytech.delivery_api.dto;
 
+import java.time.LocalDateTime;
+
 import com.deliverytech.delivery_api.entity.Cliente;
 import lombok.Data;
 
@@ -25,5 +27,10 @@ public class ClienteResponseDTO {
         this.telefone = save.getTelefone();
         this.endereco = save.getEndereco();
         this.ativo = save.getAtivo();
+    }
+
+    public ClienteResponseDTO(Long id2, String nome2, String email2, String telefone2, String endereco2, Boolean ativo2,
+            LocalDateTime dataCadastro) {
+        //TODO Auto-generated constructor stub
     }
 }

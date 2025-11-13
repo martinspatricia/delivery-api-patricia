@@ -1,73 +1,60 @@
 package com.deliverytech.delivery_api.controller;
 
-import com.deliverytech.delivery_api.entity.Cliente;
+import com.deliverytech.delivery_api.dto.ClienteDTO;
+import com.deliverytech.delivery_api.dto.ClienteResponseDTO;
 import com.deliverytech.delivery_api.service.ClienteService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/clientes")
 public class ClienteController {
 
-    @Autowired
-    private ClienteService clienteService;
+    private final ClienteService clienteService;
 
-    // POST /clientes
-    @PostMapping
-    public ResponseEntity<?> cadastrarCliente(@RequestBody Cliente cliente) {
-        try {
-            Cliente novoCliente = clienteService.cadastrarCliente(cliente);
-            return new ResponseEntity<>(novoCliente, HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+    public ClienteController(ClienteService clienteService) {
+        this.clienteService = clienteService;
     }
 
-    // GET /clientes
+    @PostMapping
+    public ResponseEntity<ClienteResponseDTO> cadastrarCliente(@Valid @RequestBody ClienteDTO clienteDTO) {
+        ClienteResponseDTO clienteSalvo = clienteService.cadastrarCliente(clienteDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(clienteSalvo);
+    }
+
     @GetMapping
-    public ResponseEntity<List<Cliente>> buscarClientesAtivos() {
-        List<Cliente> clientes = clienteService.buscarClientesAtivos();
+    public ResponseEntity<List<ClienteResponseDTO>> listarClientesAtivos() {
+        List<ClienteResponseDTO> clientes = clienteService.listarClientesAtivos();
         return ResponseEntity.ok(clientes);
     }
 
-    // GET /clientes/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<Cliente>> buscarClientePorId(@PathVariable Long id) {
-        try {
-            Optional<Cliente> cliente = clienteService.buscarPorId(id);
-            return ResponseEntity.ok(cliente);
-        } catch (NoSuchElementException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<ClienteResponseDTO> buscarClientePorId(@PathVariable Long id) {
+        ClienteResponseDTO cliente = clienteService.buscarClientePorId(id);
+        return ResponseEntity.ok(cliente);
     }
 
-    // PUT /clientes/{id}
+    @GetMapping("/email/{email}")
+    public ResponseEntity<ClienteResponseDTO> buscarClientePorEmail(@PathVariable String email) {
+        ClienteResponseDTO cliente = clienteService.buscarClientePorEmail(email);
+        return ResponseEntity.ok(cliente);
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<Cliente> atualizarCliente(@PathVariable Long id, @RequestBody Cliente cliente) {
-        try {
-            Cliente clienteAtualizado = clienteService.atualizarCliente(id, cliente);
-            return ResponseEntity.ok(clienteAtualizado);
-        } catch (NoSuchElementException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<ClienteResponseDTO> atualizarCliente(
+            @PathVariable Long id, 
+            @Valid @RequestBody ClienteDTO clienteDTO) {
+        ClienteResponseDTO clienteAtualizado = clienteService.atualizarCliente(id, clienteDTO);
+        return ResponseEntity.ok(clienteAtualizado);
     }
 
-    // DELETE /clientes/{id} - Usado para inativação
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> inativarCliente(@PathVariable Long id) {
-        try {
-            clienteService.inativarCliente(id);
-            return new ResponseEntity<>("Cliente inativado com sucesso.", HttpStatus.NO_CONTENT);
-        } catch (NoSuchElementException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        } catch (IllegalStateException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
-        }
+    public ResponseEntity<Void> inativarCliente(@PathVariable Long id) {
+        clienteService.ativarDesativarCliente(id);
+        return ResponseEntity.noContent().build();
     }
 }
