@@ -1,6 +1,6 @@
 package com.deliverytech.delivery_api.controller;
 
-import com.deliverytech.delivery_api.dto.ClienteDTO;
+import com.deliverytech.delivery_api.dto.ClienteRequestDTO;
 import com.deliverytech.delivery_api.dto.ClienteResponseDTO;
 import com.deliverytech.delivery_api.service.ClienteService;
 import jakarta.validation.Valid;
@@ -21,8 +21,8 @@ public class ClienteController {
     }
 
     @PostMapping
-    public ResponseEntity<ClienteResponseDTO> cadastrarCliente(@Valid @RequestBody ClienteDTO clienteDTO) {
-        ClienteResponseDTO clienteSalvo = clienteService.cadastrarCliente(clienteDTO);
+    public ResponseEntity<ClienteResponseDTO> cadastrarCliente(@Valid @RequestBody ClienteRequestDTO clienteRequestDTO) {
+        ClienteResponseDTO clienteSalvo = clienteService.cadastrarCliente(clienteRequestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(clienteSalvo);
     }
 
@@ -47,8 +47,8 @@ public class ClienteController {
     @PutMapping("/{id}")
     public ResponseEntity<ClienteResponseDTO> atualizarCliente(
             @PathVariable Long id, 
-            @Valid @RequestBody ClienteDTO clienteDTO) {
-        ClienteResponseDTO clienteAtualizado = clienteService.atualizarCliente(id, clienteDTO);
+            @Valid @RequestBody ClienteRequestDTO clienteRequestDTO) {
+        ClienteResponseDTO clienteAtualizado = clienteService.atualizarCliente(id, clienteRequestDTO);
         return ResponseEntity.ok(clienteAtualizado);
     }
 
