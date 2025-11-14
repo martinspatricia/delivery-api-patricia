@@ -9,8 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.deliverytech.delivery_api.dto.RestauranteRequestDTO;
+import com.deliverytech.delivery_api.dto.RestauranteResponseDTO;
 import com.deliverytech.delivery_api.entity.Restaurante;
 import com.deliverytech.delivery_api.repository.RestauranteRepository;
+
+import jakarta.validation.Valid;
 
 import com.deliverytech.delivery_api.entity.RestauranteDTO;
 
@@ -152,5 +156,30 @@ public class RestauranteService {
         Restaurante restaurante = buscarPorId(id)
             .orElseThrow(() -> new IllegalArgumentException("Restaurante não encontrado: " + id));
         restauranteRepository.delete(restaurante);
+    }
+
+    public RestauranteResponseDTO cadastrarRestaurante(RestauranteRequestDTO restauranteRequestDTO) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'cadastrarRestaurante'");
+    }
+
+    public List<RestauranteResponseDTO> listarRestaurantesAtivos() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'listarRestaurantesAtivos'");
+    }
+
+    public RestauranteResponseDTO buscarRestaurantePorId(Long id) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'buscarRestaurantePorId'");
+    }
+
+    public RestauranteResponseDTO atualizarRestaurante(Long id, RestauranteRequestDTO restauranteRequestDTO) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'atualizarRestaurante'");
+    }
+
+    public void ativarDesativarRestaurante(Long id) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'ativarDesativarRestaurante'");
     }
 }

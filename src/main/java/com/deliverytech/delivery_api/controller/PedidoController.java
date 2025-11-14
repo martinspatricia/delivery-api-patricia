@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.deliverytech.delivery_api.dto.PedidoRequestDTO;
 import com.deliverytech.delivery_api.entity.Pedido;
 import com.deliverytech.delivery_api.enums.StatusPedido;
 import com.deliverytech.delivery_api.service.PedidoService;
@@ -22,7 +23,7 @@ public class PedidoController {
      * Criar novo pedido
      */
     @PostMapping
-    public ResponseEntity<?> criarPedido(@RequestBody PedidoDTO dto) {
+    public ResponseEntity<?> criarPedido(@RequestBody PedidoRequestDTO dto) {
         try {
             Pedido pedido = pedidoService.criarPedido(dto);
             return ResponseEntity.ok(pedido);

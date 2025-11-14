@@ -1,108 +1,62 @@
 package com.deliverytech.delivery_api.controller;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import com.deliverytech.delivery_api.dto.ProdutoRequestDTO;
+import com.deliverytech.delivery_api.dto.ProdutoResponseDTO;
+import com.deliverytech.delivery_api.service.ProdutoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.deliverytech.delivery_api.entity.Produto;
-import com.deliverytech.delivery_api.service.ProdutoService;
-
+import java.util.List;
 
 @RestController
-@RequestMapping("/produtos")
-@CrossOrigin(origins = "*")
+@RequestMapping("/api/produtos")
+@Tag(name = "Produtos", description = "Operações relacionadas aos produtos")
 public class ProdutoController {
-    @Autowired
-    private ProdutoService produtoService;
+
+    private final ProdutoService produtoService;
+
+    public ProdutoController(ProdutoService produtoService) {
+        this.produtoService = produtoService;
+    }
 
     @PostMapping
-    public ResponseEntity<?> cadastrar(@Validated @RequestBody Produto produto) {
-        try {
-            Produto produtoSalvo = produtoService.cadastrar(produto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(produtoSalvo);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Erro interno do servidor");
-        }
+    @Operation(summary = "Cadastrar produto", description = "Cria um novo produto no sistema")
+    public ResponseEntity<ProdutoResponseDTO> cadastrarProduto(@Valid @RequestBody ProdutoRequestDTO produtoRequestDTO) {
+        ProdutoResponseDTO produtoSalvo = produtoService.cadastrarProduto(produtoRequestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(produtoSalvo);
     }
 
-    // Listar todos os produtos
     @GetMapping
-    public ResponseEntity<?> listarTodos() {
-        try {
-            return ResponseEntity.ok(produtoService.listarTodos());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Erro interno do servidor");
-        }
+    @Operation(summary = "Listar produtos", description = "Retorna todos os produtos disponíveis")
+    public ResponseEntity<List<ProdutoResponseDTO>> listarProdutos() {
+        List<ProdutoResponseDTO> produtos = produtoService.listarProdutosDisponiveis();
+        return ResponseEntity.ok(produtos);
     }
-    // Buscar produto por ID
+
     @GetMapping("/{id}")
-    public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
-        try {
-            Produto produto = produtoService.buscarPorId(id);
-            if (produto != null) {
-                return ResponseEntity.ok(produto);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Produto não encontrado");
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Erro interno do servidor");
-        }
+    @Operation(summary = "Buscar produto por ID", description = "Retorna um produto pelo seu ID")
+    public ResponseEntity<ProdutoResponseDTO> buscarProdutoPorId(@PathVariable Long id) {
+        ProdutoResponseDTO produto = produtoService.buscarProdutoPorId(id);
+        return ResponseEntity.ok(produto);
     }
-    // Atualizar produto
+
     @PutMapping("/{id}")
-    public ResponseEntity<?> atualizar(@PathVariable Long id, @Validated @RequestBody Produto produto) {
-        try {
-            Produto atualizado = produtoService.atualizar(id, produto);
-            return ResponseEntity.ok(atualizado);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Erro interno do servidor");
-        }
+    @Operation(summary = "Atualizar produto", description = "Atualiza os dados de um produto existente")
+    public ResponseEntity<ProdutoResponseDTO> atualizarProduto(
+            @PathVariable Long id, 
+            @Valid @RequestBody ProdutoRequestDTO produtoRequestDTO) {
+        ProdutoResponseDTO produtoAtualizado = produtoService.atualizarProduto(id, produtoRequestDTO);
+        return ResponseEntity.ok(produtoAtualizado);
     }
-    // Excluir produto
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> excluir(@PathVariable Long id) {
-        try {
-            produtoService.excluir(id);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Erro interno do servidor");
-        }
+    @Operation(summary = "Inativar produto", description = "Inativa um produto (exclusão lógica)")
+    public ResponseEntity<Void> inativarProduto(@PathVariable Long id) {
+        produtoService.alterarDisponibilidade(id, false);
+        return ResponseEntity.noContent().build();
     }
-    //inativar produto
-    @PutMapping("/{id}/inativar")
-    public ResponseEntity<?> inativar(@PathVariable Long id) {
-        try {
-            Produto produtoInativado = produtoService.inativar(id);
-            return ResponseEntity.ok(produtoInativado);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Erro interno do servidor");
-        }
-    }
-
-    // buscar produto por restaurante ID
-    @GetMapping("/restaurante/{restauranteId}")
-    public ResponseEntity<?> buscarPorRestaurante(@PathVariable Long restauranteId) {
-        try {
-            return ResponseEntity.ok(produtoService.buscarPorRestaurante(restauranteId));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Erro interno do servidor");
-        }
-    }
-
 }

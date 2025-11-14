@@ -7,10 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.deliverytech.delivery_api.dto.ProdutoRequestDTO;
+import com.deliverytech.delivery_api.dto.ProdutoResponseDTO;
 import com.deliverytech.delivery_api.entity.Produto;
 import com.deliverytech.delivery_api.entity.ProdutoDTO;
 import com.deliverytech.delivery_api.repository.ProdutoRepository;
 import com.deliverytech.delivery_api.repository.RestauranteRepository;
+
+import jakarta.validation.Valid;
 
 @Service
 public class ProdutoService {
@@ -112,5 +116,25 @@ public class ProdutoService {
 
         produto.setDisponivel(false);
         return produtoRepository.save(produto);
+    }
+    public ProdutoResponseDTO cadastrarProduto(ProdutoRequestDTO produtoRequestDTO) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'cadastrarProduto'");
+    }
+    public List<ProdutoResponseDTO> listarProdutosDisponiveis() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'listarProdutosDisponiveis'");
+    }
+    public ProdutoResponseDTO buscarProdutoPorId(Long id) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'buscarProdutoPorId'");
+    }
+    public ProdutoResponseDTO atualizarProduto(Long id, ProdutoRequestDTO produtoRequestDTO) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'atualizarProduto'");
+    }
+    public void alterarDisponibilidade(Long id, boolean b) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'alterarDisponibilidade'");
     }
 }
